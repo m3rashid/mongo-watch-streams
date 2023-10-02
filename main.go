@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,11 +23,17 @@ type Config struct {
 }
 
 func main() {
+	// load env from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	CreateNewFlow()
 
 	// Set up configuration
 	config := Config{
-		MongoURI:        "<db_uri>",
+		MongoURI:        os.Getenv("MONGO_URI"),
 		DatabaseName:    "go-watch-stream",
 		CollectionNames: []string{"users", "products"},
 		ChangeStreamStage: bson.D{
@@ -96,6 +104,13 @@ func parseChangeDocument(changeDocument bson.M) {
 	operationType := parsedDocument["operationType"]
 	data := parsedDocument["fullDocument"]
 	collection := parsedDocument["ns"].(map[string]interface{})["coll"].(string)
+	documentKey := parsedDocument["documentKey"].(map[string]interface{})["_id"].(string)
 
-	RunFlow(collection, operationType, data)
+	if operationType == "delete" {
+		fmt.Println("Delete ", documentKey, " from ", collection, " collection")
+	} else {
+		if value, ok := data.(map[string]interface{}); ok {
+			RunFlow(collection, operationType, value)
+		}
+	}
 }
