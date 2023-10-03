@@ -48,7 +48,7 @@ const addUser = async () => {
 	await user.save();
 };
 
-const sleep = (ms) => {
+const sleep = async (ms) => {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 };
 

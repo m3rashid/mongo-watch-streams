@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/joho/godotenv"
+	"github.com/m3rashid/go-watch-stream/flow"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,7 +30,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	CreateNewFlow()
+	flow.CreateNew()
 
 	// Set up configuration
 	config := Config{
@@ -110,7 +111,7 @@ func parseChangeDocument(changeDocument bson.M) {
 		fmt.Println("Delete ", documentKey, " from ", collection, " collection")
 	} else {
 		if value, ok := data.(map[string]interface{}); ok {
-			RunFlow(collection, operationType, value)
+			flow.Run(collection, operationType, value)
 		}
 	}
 }
